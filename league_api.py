@@ -27,7 +27,6 @@ class Summoner:
 
     def __init__(self):
         self.base_url = '%s%s/v1.4/summoner/' % (config['base_url'], config['region'])
-        self.lol_request = LeagueRequest()
 
     def get_summoners_info_by_names(self, summoner_names):
         """Get info about summoners by summoner names
@@ -63,4 +62,29 @@ class Summoner:
             raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
 
         url = self.base_url + ','.join(str(summoner_id) for summoner_id in summoner_ids) + '/name'
+        return LeagueRequest.get(url)
+
+
+class Game:
+
+    def __init__(self):
+        self.base_game_url = '%s%s/v1.3/game/by-summoner/%s/recent' % (config['base_url'], config['region'], '%d')
+        self.base_match_url = '%s%s/v2.2/match/%s' % (config['base_url'], config['region'], '%d')
+
+    def get_recent_games(self, summoner_id):
+        """Get 10 most recent games of a summoner
+
+        Keyword arguments:
+        summoner_id -- summoner id for querying the recent games
+        """
+        url = self.base_game_url % summoner_id
+        return LeagueRequest.get(url)
+
+    def get_match_info(self, match_id):
+        """Get detailed info about a match
+
+        Keyword arguments:
+        summoner_id -- id of the match
+        """
+        url = self.base_match_url % match_id
         return LeagueRequest.get(url)
