@@ -13,6 +13,7 @@ api_key = api_key[:-1] if '\r' == api_key[-1:] else api_key
 
 class LeagueRequest:
 
+    @retry(wait_fixed=10000) #wait for 10 seconds before retrying
     def get(url):
         url_auth = ('%s?api_key=%s' % (url, api_key))
         request_info = requests.get(url_auth)
