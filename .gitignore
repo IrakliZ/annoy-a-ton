@@ -1,3 +1,5 @@
 aws_dynamo_credentials.json
 venv
 setup.sh
+*.swp
+__pycache__
