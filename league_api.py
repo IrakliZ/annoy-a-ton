@@ -26,11 +26,11 @@ class LeagueRequest:
 class Summoner:
 
     def __init__(self):
-        self.base_url = '%s%s/v1.4/summoner/by-name/' % (config['base_url'], config['region'])
+        self.base_url = '%s%s/v1.4/summoner/' % (config['base_url'], config['region'])
         self.lol_request = LeagueRequest()
 
-    def get_summoners_info(self, summoner_names):
-        """Get info about summoners
+    def get_summoners_info_by_names(self, summoner_names):
+        """Get info about summoners by summoner names
 
         Keyword arguments:
         summoner_names -- list of summoner names to query
@@ -38,5 +38,29 @@ class Summoner:
         if len(summoner_names) > 40:
             raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
 
-        url = self.base_url + ','.join(summoner_names)
+        url = self.base_url + 'by-name/' + ','.join(summoner_names)
+        return LeagueRequest.get(url)
+
+    def get_summoners_info_by_ids(self, summoner_ids):
+        """Get info about summoners by summoner ids
+
+        Keyword arguments:
+        summoner_ids -- list of summoner ids to query
+        """
+        if len(summoner_ids) > 40:
+            raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
+
+        url = self.base_url + ','.join(str(summoner_id) for summoner_id in summoner_ids)
+        return LeagueRequest.get(url)
+
+    def get_summoner_names_by_ids(self, summoner_ids):
+        """Get summoner names by their ids
+
+        Keyword arguments:
+        summoner_ids -- list of summoner ids to query
+        """
+        if len(summoner_ids) > 40:
+            raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
+
+        url = self.base_url + ','.join(str(summoner_id) for summoner_id in summoner_ids) + '/name'
         return LeagueRequest.get(url)
