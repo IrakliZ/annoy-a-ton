@@ -1,8 +1,9 @@
-import os
-import requests
-import json
 from functools import lru_cache
+import json
+import os
 from retrying import retry
+import requests
+import util
 
 with open('config.json') as f:
     config = json.load(f)
@@ -34,11 +35,14 @@ class Summoner:
         Keyword arguments:
         summoner_names -- list of summoner names to query
         """
-        if len(summoner_names) > 40:
-            raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
 
-        url = self.base_url + 'by-name/' + ','.join(summoner_names)
-        return LeagueRequest.get(url)
+        results = []
+        for subset in util.grouper(summoner_names, 40):
+            url = self.base_url + 'by-name/' + ','.join(name for name in subset if name)
+            print("by_names: %s" % url)
+            results.append(LeagueRequest.get(url))
+
+        return util.dict_merge(results)
 
     def get_summoners_info_by_ids(self, summoner_ids):
         """Get info about summoners by summoner ids
@@ -46,11 +50,14 @@ class Summoner:
         Keyword arguments:
         summoner_ids -- list of summoner ids to query
         """
-        if len(summoner_ids) > 40:
-            raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
 
-        url = self.base_url + ','.join(str(summoner_id) for summoner_id in summoner_ids)
-        return LeagueRequest.get(url)
+        results = []
+        for subset in util.grouper(summoner_ids, 40):
+            url = self.base_url + ','.join(str(summoner_id) for summoner_id in subset if summoner_id)
+            print("by_ids: %s" % url)
+            results.append(LeagueRequest.get(url))
+
+        return util.dict_merge(results)
 
     def get_summoner_names_by_ids(self, summoner_ids):
         """Get summoner names by their ids
@@ -58,12 +65,13 @@ class Summoner:
         Keyword arguments:
         summoner_ids -- list of summoner ids to query
         """
-        if len(summoner_ids) > 40:
-            raise ValueError('Too many summoners') #TODO: Add handling of request with more than 40 summoners
+        results = []
+        for subset in util.grouper(summoner_ids, 40):
+            url = self.base_url + ','.join(str(summoner_id) for summoner_id in subset if summoner_id) + '/name'
+            print("names_by_ids: %s" % url)
+            results.append(LeagueRequest.get(url))
 
-        url = self.base_url + ','.join(str(summoner_id) for summoner_id in summoner_ids) + '/name'
-        return LeagueRequest.get(url)
-
+        return util.dict_merge(results)
 
 class Game:
 
