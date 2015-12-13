@@ -40,7 +40,6 @@ class Summoner:
         results = []
         for subset in util.grouper(summoner_names, 40):
             url = self.base_url + 'by-name/' + ','.join(name for name in subset if name)
-            print("by_names: %s" % url)
             results.append(LeagueRequest.get(url))
 
         return util.dict_merge(results)
@@ -55,7 +54,6 @@ class Summoner:
         results = []
         for subset in util.grouper(summoner_ids, 40):
             url = self.base_url + ','.join(str(summoner_id) for summoner_id in subset if summoner_id)
-            print("by_ids: %s" % url)
             results.append(LeagueRequest.get(url))
 
         return util.dict_merge(results)
@@ -69,7 +67,6 @@ class Summoner:
         results = []
         for subset in util.grouper(summoner_ids, 40):
             url = self.base_url + ','.join(str(summoner_id) for summoner_id in subset if summoner_id) + '/name'
-            print("names_by_ids: %s" % url)
             results.append(LeagueRequest.get(url))
 
         return util.dict_merge(results)
