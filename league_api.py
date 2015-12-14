@@ -10,17 +10,20 @@ with open('config.json') as f:
 
 api_key = os.environ.get('LOL_API_KEY')
 api_key = api_key[:-1] if '\r' == api_key[-1:] else api_key
+retry_errors = [429, 500, 503] #Rate limit exceeded, Internal server error, Service unavailable
 
 
 class LeagueRequest:
 
-    @retry(wait_fixed=10000) #wait for 10 seconds before retrying
+    @retry(retry_on_exception=lambda x: False, retry_on_result=lambda x: x is None, wait_fixed=10000)
     def get(url):
         url_auth = ('%s?api_key=%s' % (url, api_key))
         request_info = requests.get(url_auth)
 
-        if request_info.status_code != 200:
-            raise ValueError(request_info.json()['status']['message'])
+        if request_info.status_code in retry_errors:
+            return None
+        elif request_info.status_code != 200:
+            raise ValueError(request_info.status_code)
 
         return request_info.json()
 
@@ -64,6 +67,7 @@ class Summoner:
         Keyword arguments:
         summoner_ids -- list of summoner ids to query
         """
+
         results = []
         for subset in util.grouper(summoner_ids, 40):
             url = self.base_url + ','.join(str(summoner_id) for summoner_id in subset if summoner_id) + '/name'
@@ -76,6 +80,7 @@ class Game:
     def __init__(self):
         self.base_game_url = '%s%s/v1.3/game/by-summoner/%s/recent' % (config['base_url'], config['region'], '%d')
         self.base_match_url = '%s%s/v2.2/match/%s' % (config['base_url'], config['region'], '%d')
+        self.base_current_url = 'https://na.api.pvp.net/observer-mode/rest/consumer/getSpectatorGameInfo/%s/%d'
 
     def get_recent_games(self, summoner_id):
         """Get 10 most recent games of a summoner
@@ -83,6 +88,7 @@ class Game:
         Keyword arguments:
         summoner_id -- summoner id for querying the recent games
         """
+
         url = self.base_game_url % summoner_id
         return LeagueRequest.get(url)
 
@@ -90,7 +96,18 @@ class Game:
         """Get detailed info about a match
 
         Keyword arguments:
-        summoner_id -- id of the match
+        match_id -- id of the match
         """
+
         url = self.base_match_url % match_id
+        return LeagueRequest.get(url)
+
+    def get_current_match(self, summoner_id):
+        """Get detailed info about a the current ongoing match
+
+        Keyword arguments:
+        summoner_id -- id of the summoner
+        """
+
+        url = self.base_current_url % ('NA1', summoner_id)
         return LeagueRequest.get(url)
