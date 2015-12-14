@@ -11,9 +11,7 @@ attribute_name = 'summoner_name'
 class DataCollector:
 
     def __init__(self, summoner_name):
-        self.summoner_name = summoner_name
-        self.summoner = Summoner()
-        self.game = Game()
+        self.summoner_name = summoner_name.lower()
         self.dynamo_controller = DynamoData()
         self.table = None
 
@@ -41,6 +39,11 @@ class DataCollector:
 
         self.table.put_item(Item=initial_data)
         return initial_data
+
+    def start_tracking(self):
+        summoner = Summoner()
+        summoner_info = summoner.get_summoners_info_by_names([self.summoner_name])
+        summoner_id = summoner_info[self.summoner_name]['id']
 
 
 class DynamoData:
