@@ -1,8 +1,9 @@
+import decimal
 from functools import lru_cache
 import json
 import os
-from retrying import retry
 import requests
+from retrying import retry
 import util
 
 with open('config.json') as f:
@@ -25,7 +26,7 @@ class LeagueRequest:
         elif request_info.status_code != 200:
             raise ValueError(request_info.status_code)
 
-        return request_info.json()
+        return json.loads(request_info.text, parse_float=decimal.Decimal)
 
 
 class Summoner:
