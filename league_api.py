@@ -13,6 +13,10 @@ api_key = api_key[:-1] if '\r' == api_key[-1:] else api_key
 retry_errors = [429, 500, 503]  # Rate limit exceeded, Internal server error, Service unavailable
 
 
+class NotFoundException(Exception):
+    pass
+
+
 class LeagueRequest:
 
     @retry(retry_on_exception=lambda x: False, retry_on_result=lambda x: x is None, wait_fixed=10000)
@@ -23,6 +27,8 @@ class LeagueRequest:
 
         if request_info.status_code in retry_errors:
             return None
+        elif request_info.status_code == 404:
+            raise NotFoundException('Request was not found')
         elif request_info.status_code != 200:
             raise ValueError(request_info.status_code)
 
