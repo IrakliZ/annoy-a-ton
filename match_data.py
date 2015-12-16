@@ -23,7 +23,7 @@ class DataCollector:
             self.table = self.dynamo_controller.get_table(table_name)
         except ValueError:
             self.table = self.dynamo_controller.setup_table(table_name, attribute_name)
-        
+
         summoner_data = self.table.get_item(Key=dict(summoner_name=self.summoner_name))
         print(summoner_data)
 
