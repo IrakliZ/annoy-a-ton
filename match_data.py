@@ -1,5 +1,5 @@
 import boto3
-from league_api import Summoner, Game
+from league_api import Summoner, Game, NotFoundException
 import pickle
 import time
 from queue import Queue
@@ -50,26 +50,37 @@ class DataCollector:
         current_match_id = None
 
         while True:
+            print('Tracking outer loop')
             try:
                 current_match = self.game.get_current_match(summoner_id)
                 current_match_id = current_match['gameId']
                 self.track_in_game(current_match_id, summoner_id)
-            except ValueError:
+            except NotFoundException:
                 time.sleep(600)
 
     def track_in_game(self, match_id, summoner_id):
         match_id_temp = match_id
         current_match = None
         while match_id_temp == match_id:
+            print('Tracking inner %d' % match_id)
             try:
                 current_match = self.game.get_current_match(summoner_id)
                 match_id_temp = current_match['gameId']
-            except ValueError:
+            except NotFoundException:
                 break
 
             time.sleep(60)
 
-        match_info = self.game.get_match_info(match_id)
+        counter = 0
+        match_info = None
+        while counter < 10:
+            try:
+                match_info = self.game.get_match_info(match_id)
+                break
+            except NotFoundException:
+                counter += 1
+                time.sleep(10)
+
         pickle.dump(match_info, open('match_info.p', 'wb'))
         stored_data = self.get_existing_summoner_data()
         stored_data['game_ids'].append(match_id)
