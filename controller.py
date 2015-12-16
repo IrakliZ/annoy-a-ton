@@ -8,7 +8,7 @@ from threading import Thread
 
 class Controller(object):
     def __init__(self):
-        self.the_player = 'HotshotGG'
+        self.the_player = 'ThatSpysASpy'
         self.collector = DataCollector(self.the_player)
 
         self.slack = slack_api.Slack()
@@ -43,3 +43,4 @@ class Controller(object):
 
 if __name__ == "__main__":
     c = Controller()
+    c.run()
