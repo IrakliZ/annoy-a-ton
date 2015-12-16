@@ -21,7 +21,6 @@ class DataCollector:
             self.table = self.dynamo_controller.setup_table(table_name, attribute_name)
 
         summoner_data = self.table.get_item(Key=dict(summoner_name=self.summoner_name))
-        print(summoner_data)
 
         if 'Item' not in summoner_data:  # Check if item already exists in dynamodb
             summoner_data = self.initial_setup()
@@ -47,7 +46,6 @@ class DataCollector:
         current_match_id = None
 
         while True:
-            print('Traking in outter loop')
             try:
                 current_match = self.game.get_current_match(summoner_id)
                 current_match_id = current_match['gameId']
@@ -59,7 +57,6 @@ class DataCollector:
         match_id_temp = match_id
         current_match = None
         while match_id_temp == match_id:
-            print('Tracking the match %d' % match_id)
             try:
                 current_match = self.game.get_current_match(summoner_id)
                 match_id_temp = current_match['gameId']
