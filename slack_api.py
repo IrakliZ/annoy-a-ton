@@ -19,7 +19,6 @@ class Slack(object):
         body = response.json()
 
         self.channels = {c["name"]: c for c in chain(body["channels"], body["groups"])}
-        print([k for k in self.channels])
 
         url = body["url"]
 
@@ -35,9 +34,9 @@ class Slack(object):
         """
 
         message = json.dumps({"id": self.message_id,
-                           "type": "message",
-                           "channel": self.channels[channel_name]["id"],
-                           "text": text})
+                              "type": "message",
+                              "channel": self.channels[channel_name]["id"],
+                              "text": text})
 
         self.message_id += 1
         self.socket.send(message)

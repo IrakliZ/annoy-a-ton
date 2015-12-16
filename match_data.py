@@ -1,6 +1,8 @@
 import boto3
-import time
 from league_api import Summoner, Game
+import pickle
+import time
+from queue import Queue
 
 table_name = 'league_data'
 attribute_name = 'summoner_name'
@@ -13,6 +15,8 @@ class DataCollector:
         self.game = Game()
         self.dynamo_controller = DynamoData()
         self.table = None
+
+        self.output = Queue()
 
     def get_existing_summoner_data(self):
         try:
@@ -66,11 +70,19 @@ class DataCollector:
             time.sleep(60)
 
         match_info = self.game.get_match_info(match_id)
+        pickle.dump(match_info, open('match_info.p', 'wb'))
         stored_data = self.get_existing_summoner_data()
         stored_data['game_ids'].append(match_id)
         stored_data['games'].append(match_info)
 
         self.table.put_item(Item=stored_data)
+        self.output.put(match_info)
+
+    # TODO: Replace this a wait/notify method instead
+    def get_game(self):
+        while self.output.empty():
+            time.sleep(10)
+        return self.output.get()
 
 
 class DynamoData:

@@ -1,5 +1,4 @@
 import decimal
-from functools import lru_cache
 import json
 import os
 import requests
@@ -11,7 +10,7 @@ with open('config.json') as f:
 
 api_key = os.environ.get('LOL_API_KEY')
 api_key = api_key[:-1] if '\r' == api_key[-1:] else api_key
-retry_errors = [429, 500, 503] #Rate limit exceeded, Internal server error, Service unavailable
+retry_errors = [429, 500, 503]  # Rate limit exceeded, Internal server error, Service unavailable
 
 
 class LeagueRequest:
@@ -20,6 +19,7 @@ class LeagueRequest:
     def get(url):
         url_auth = ('%s?api_key=%s' % (url, api_key))
         request_info = requests.get(url_auth)
+        print("Url: %s Status: %d" % (url_auth, request_info.status_code))
 
         if request_info.status_code in retry_errors:
             return None
@@ -75,6 +75,7 @@ class Summoner:
             results.append(LeagueRequest.get(url))
 
         return util.dict_merge(results)
+
 
 class Game:
 
