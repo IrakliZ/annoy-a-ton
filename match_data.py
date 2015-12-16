@@ -11,20 +11,39 @@ attribute_name = 'summoner_name'
 class DataCollector:
 
     def __init__(self, summoner_name):
-        self.summoner_name = summoner_name
-        self.summoner = Summoner()
-        self.game = Game()
+        self.summoner_name = summoner_name.lower()
         self.dynamo_controller = DynamoData()
+        self.table = None
 
-    def track_summoner(self):
+    def get_existing_summoner_data(self):
         try:
-            table = self.dynamo_controller.get_table(table_name)
+            self.table = self.dynamo_controller.get_table(table_name)
         except ValueError:
-            table = self.initial_setup()
+            self.table = self.dynamo_controller.setup_table(table_name, attribute_name)
+        
+        summoner_data = self.table.get_item(Key=dict(summoner_name=self.summoner_name))
+
+        if 'Item' not in summoner_data: #Check if item already exists in dynamodb
+            summoner_data = self.initial_setup()
+        else:
+            summoner_data = summoner_data['Item']
+
+        return summoner_data
 
     def initial_setup(self):
-        return self.dynamo_controller.setup_table(table_name, attribute_name)
+        initial_data = {
+            'summoner_name': self.summoner_name,
+            'game_ids': [],
+            'games': []
+        }
 
+        self.table.put_item(Item=initial_data)
+        return initial_data
+
+    def start_tracking(self):
+        summoner = Summoner()
+        summoner_info = summoner.get_summoners_info_by_names([self.summoner_name])
+        summoner_id = summoner_info[self.summoner_name]['id']
 
 
 class DynamoData:
