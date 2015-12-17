@@ -39,7 +39,7 @@ class Controller(object):
                 assists = stats['assists']
                 champ = self.champs[participant['championId']]
                 quote = choice(self.lytes)
-                message = "Quinn went %d/%d/%d on %s and lost. %s" % (kills, deaths, assists, champ, quote)
+                message = "Quinn lost a game as %d/%d/%d %s and lost. %s" % (kills, deaths, assists, champ, quote)
 
                 self.slack.send_message(self.channel, message)
 
