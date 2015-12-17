@@ -1,8 +1,8 @@
 import boto3
 from league_api import Summoner, Game, NotFoundException
-import pickle
 import time
 from queue import Queue
+
 
 table_name = 'league_data'
 attribute_name = 'summoner_name'
@@ -59,6 +59,12 @@ class DataCollector:
                 time.sleep(600)
 
     def track_in_game(self, match_id, summoner_id):
+        def player_mapper(p_id, participant):
+            player = {'summonerId': participant['summonerId'],
+                      'summonerName': participant['summonerName'],
+                      'profileIcon': participant['profileIconId']}
+
+            return {'participantId': p_id, 'player': player}
         match_id_temp = match_id
         current_match = None
         while match_id_temp == match_id:
@@ -81,10 +87,13 @@ class DataCollector:
                 counter += 1
                 time.sleep(10)
 
-        pickle.dump(match_info, open('match_info.p', 'wb'))
+        player_map = {(p['championId'], p['teamId']): p for p in current_match['participants']}
         stored_data = self.get_existing_summoner_data()
         stored_data['game_ids'].append(match_id)
         stored_data['games'].append(match_info)
+
+        # populate participant identities, ruck fito
+        match_info['participantIdentities'] = [player_mapper(p['participantId'], player_map[p['championId'], p['teamId']]) for p in match_info['participants']]
 
         self.table.put_item(Item=stored_data)
         self.output.put(match_info)
