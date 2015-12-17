@@ -8,7 +8,7 @@ from threading import Thread
 
 class Controller(object):
     def __init__(self):
-        self.the_player = 'Synz0331'
+        self.the_player = 'Tankers'
         self.collector = DataCollector(self.the_player)
 
         self.slack = slack_api.Slack()
@@ -26,7 +26,7 @@ class Controller(object):
             print("Waiting for game")
             match_info = self.collector.get_game()
             print("Got game")
-            p_num = next(p['participantId'] for p in match_info['participantIdentities'] if p['player']['summonerName'] == self.the_player)
+            p_num = next(p['participantId'] for p in match_info['participantIdentities'] if p['player']['summonerName'].lower() == self.the_player.lower())
             participant = next(p for p in match_info['participants'] if p['participantId'] == p_num)
             team = participant['teamId']
             won = next(t for t in match_info['teams'] if t['teamId'] == team)

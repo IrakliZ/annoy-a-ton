@@ -79,10 +79,10 @@ class DataCollector:
 
         counter = 0
         match_info = None
-        while counter < 10:
+        while counter < 20:
             try:
                 match_info = self.game.get_match_info(match_id)
-                break
+                return
             except NotFoundException:
                 counter += 1
                 time.sleep(10)
