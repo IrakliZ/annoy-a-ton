@@ -40,3 +40,6 @@ class Slack(object):
 
         self.message_id += 1
         self.socket.send(message)
+
+    def close(self):
+        self.socket.close()

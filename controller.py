@@ -11,8 +11,7 @@ class Controller(object):
         self.the_player = 'Tankers'
         self.collector = DataCollector(self.the_player)
 
-        self.slack = slack_api.Slack()
-        self.channel = 'quinn-facts'
+        self.channel = 'dankmemeseses'
         self.lytes = [line.strip() for line in open('lyte.txt')]
 
         self.champs = json.load(open('champs.json'))
@@ -29,7 +28,8 @@ class Controller(object):
             p_num = next(p['participantId'] for p in match_info['participantIdentities'] if p['player']['summonerName'].lower() == self.the_player.lower())
             participant = next(p for p in match_info['participants'] if p['participantId'] == p_num)
             team = participant['teamId']
-            won = next(t for t in match_info['teams'] if t['teamId'] == team)
+            won = next(t for t in match_info['teams'] if t['teamId'] == team)['winner']
+            print('won or not %s' % str(won))
 
             if not won:
                 stats = participant['stats']
@@ -39,9 +39,13 @@ class Controller(object):
                 assists = stats['assists']
                 champ = self.champs[participant['championId']]
                 quote = choice(self.lytes)
-                message = "Quinn lost a game as %d/%d/%d %s and lost. %s" % (kills, deaths, assists, champ, quote)
+                message = "Quinn lost with a score of %d/%d/%d on %s. %s" % (kills, deaths, assists, champ, quote)
 
-                self.slack.send_message(self.channel, message)
+                print("Making a slack")
+                slack = slack_api.Slack()
+                print("Sending message: %s" % message)
+                slack.send_message(self.channel, message)
+                slack.close()
 
 
 if __name__ == "__main__":
