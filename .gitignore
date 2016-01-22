@@ -4,3 +4,4 @@ setup.sh
 *.swp
 __pycache__
 slack_token
+*.p
