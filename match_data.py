@@ -6,43 +6,22 @@ from queue import Queue
 
 
 table_name = 'league_data'
-attribute_name = 'summoner_name'
+attribute_name = 'match_id'
 
 
 class DataCollector:
 
     def __init__(self, summoner_name):
-        self.summoner_name = summoner_name.lower()
+        self.summoner_name = summoner_name.lower().replace(' ', '')
         self.game = Game()
         self.dynamo_controller = DynamoData()
-        self.table = None
+
+        try:
+            self.table = self.dynamo_controller.get_table(self.summoner_name)
+        except ValueError:
+            self.table = self.dynamo_controller.setup_table(self.summoner_name, attribute_name)
 
         self.output = Queue()
-
-    def get_existing_summoner_data(self):
-        try:
-            self.table = self.dynamo_controller.get_table(table_name)
-        except ValueError:
-            self.table = self.dynamo_controller.setup_table(table_name, attribute_name)
-
-        summoner_data = self.table.get_item(Key=dict(summoner_name=self.summoner_name))
-
-        if 'Item' not in summoner_data:  # Check if item already exists in dynamodb
-            summoner_data = self.initial_setup()
-        else:
-            summoner_data = summoner_data['Item']
-
-        return summoner_data
-
-    def initial_setup(self):
-        initial_data = {
-                'summoner_name': self.summoner_name,
-            'game_ids': [],
-            'games': []
-        }
-
-        self.table.put_item(Item=initial_data)
-        return initial_data
 
     def start_tracking(self):
         summoner = Summoner()
@@ -98,14 +77,14 @@ class DataCollector:
 
         pickle.dump((current_match, match_info), open('saved.p', 'wb'))
         player_map = {(p['championId'], p['teamId']): p for p in current_match['participants']}
-        stored_data = self.get_existing_summoner_data()
-        stored_data['game_ids'].append(match_id)
-        stored_data['games'].append(match_info)
+
+        game_data = {'match_id': match_id, 'match_info': match_info}
+        self.table.put_item(Item=game_data)
 
         # populate participant identities, ruck fito
         match_info['participantIdentities'] = [player_mapper(p['participantId'], player_map[p['championId'], p['teamId']]) for p in match_info['participants']]
 
-        self.table.put_item(Item=stored_data)
+        self.table.put_item(Item=game_data)
         self.output.put(match_info)
 
     # TODO: Replace this a wait/notify method instead
@@ -131,7 +110,7 @@ class DynamoData:
         table = self.dynamodb.create_table(
             TableName=table_name,
             KeySchema=[dict(AttributeName=attribute_name, KeyType='HASH')],
-            AttributeDefinitions=[dict(AttributeName=attribute_name, AttributeType='S')],
+            AttributeDefinitions=[dict(AttributeName=attribute_name, AttributeType='N')],
             ProvisionedThroughput=dict(ReadCapacityUnits=5, WriteCapacityUnits=5)
         )
 
